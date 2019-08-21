@@ -1,0 +1,31 @@
+form:
+  fields:
+    tabs:
+      fields:
+        aura:
+          type: tab
+          title: Aura
+
+          fields:
+
+            header.aura.pagetype:
+              type: select
+              label: Page Type
+              size: medium
+              options:
+                website: Website (default)
+                article: Article
+              validate:
+                required: true
+
+            header.aura.description:
+              type: text
+              size: long
+              label: 'Page Description'
+              description: 'Recommended length 140-160 characters.'
+
+            header.aura.image:
+              type: filepicker
+              label: Preview Image
+              preview_images: true
+              description: 'Recommended size 1920x1080px in .jpg, .png or .gif format only. If not specified, will default to the first image found in the page''s folder.'

@@ -1,0 +1,138 @@
+name: Aura
+version: 1.0.0
+description: Automatically add meta tags and structured data to your pages for visually appealing and informative search results and social media shared links.
+icon: code
+author:
+  name: Matt Mulhall
+  email: matt@theskylab.net
+  url: https://www.theskylab.net
+homepage: https://github.com/matt-j-m/grav-plugin-aura
+keywords: seo, structured data, open graph
+bugs: https://github.com/matt-j-m/grav-plugin-aura/issues
+docs: https://github.com/matt-j-m/grav-plugin-aura/README.md
+license: MIT
+
+form:
+  validation: strict
+  fields:
+    enabled:
+      type: toggle
+      label: PLUGIN_ADMIN.PLUGIN_STATUS
+      highlight: 1
+      default: 0
+      options:
+        1: PLUGIN_ADMIN.ENABLED
+        0: PLUGIN_ADMIN.DISABLED
+      validate:
+        type: bool
+    output-heading:
+      type: section
+      title: Output Options
+      text: '<em>Enable any or all of the following options to include the relevant tags and metadata in each page.</em>'
+      underline: true
+    output-sd:
+      type: toggle
+      label: schema.org Structured Data (Google, Microsoft, Yahoo!, Yandex)
+      highlight: 1
+      default: 1
+      options:
+        1: Enabled
+        0: Disabled
+      validate:
+        type: bool
+    output-og:
+      type: toggle
+      label: Open Graph (Facebook, Pinterest)
+      highlight: 1
+      default: 1
+      options:
+        1: Enabled
+        0: Disabled
+      validate:
+        type: bool
+    output-twitter:
+      type: toggle
+      label: Twitter Card
+      highlight: 1
+      default: 1
+      options:
+        1: Enabled
+        0: Disabled
+      validate:
+        type: bool
+    output-linkedin:
+      type: toggle
+      label: LinkedIn Article
+      highlight: 1
+      default: 1
+      options:
+        1: Enabled
+        0: Disabled
+      validate:
+        type: bool
+    org-heading:
+      type: section
+      title: Organization Information
+      underline: true
+    org-name:
+      type: text
+      size: large
+      label: Name
+      validate:
+        required: true
+    org-url:
+      type: text
+      size: large
+      label: URL
+      validate:
+        required: true
+    org-logo:
+      type: file
+      size: large
+      label: Logo (minimum 112x112px .jpg, .png or .gif format only)
+      multiple: false
+      destination: 'user/plugins/aura/assets'
+      accept:
+        - .jpg
+        - .png
+        - .gif
+    org-facebook-url:
+      type: text
+      size: large
+      label: Facebook URL
+      placeholder: 'https://www.facebook.com/username'
+    org-facebook-appid:
+      type: text
+      size: large
+      label: Facebook App ID
+      placeholder: '1234567890'
+    org-twitter-user:
+      type: text
+      size: large
+      label: Twitter Username
+      placeholder: 'username'
+    org-instagram-url:
+      type: text
+      size: large
+      label: Instagram URL
+      placeholder: 'https://www.instagram.com/username/'
+    org-linkedin-url:
+      type: text
+      size: large
+      label: LinkedIn URL
+      placeholder: 'https://www.linkedin.com/company/company-name/'
+    org-pinterest-url:
+      type: text
+      size: large
+      label: Pinterest URL
+      placeholder: 'https://www.pinterest.com/username/'
+    org-youtube-url:
+      type: text
+      size: large
+      label: YouTube URL
+      palceholder: 'https://www.youtube.com/username'
+    org-wikipedia-url:
+      type: text
+      size: large
+      label: Wikipedia URL
+      placeholder: "https://en.wikipedia.org/wiki/Company"
