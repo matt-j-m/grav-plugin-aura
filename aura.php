@@ -104,9 +104,13 @@ class AuraPlugin extends Plugin
         if ((isset($header->aura['description'])) && ($header->aura['description'] != '')) {
             $this->webpage->description = (string)$header->aura['description'];
         }
-        $this->webpage->language = $this->grav['language']->getActive();
-        if (!$this->webpage->language) {
-            $this->webpage->language = $this->grav['config']->get('site.default_lang');
+        if ((isset($header->language)) and ($header->language != '')) {
+            $this->webpage->language = $header->language;
+        } else {
+            $this->webpage->language = $this->grav['language']->getActive();
+            if (!$this->webpage->language) {
+                $this->webpage->language = $this->grav['config']->get('site.default_lang');
+            }
         }
         $this->webpage->datePublished = date("c", $page->date());
         $this->webpage->dateModified = date("c", $page->modified());
@@ -242,7 +246,11 @@ class AuraPlugin extends Plugin
             // Generate structured data block
             $sd = $this->generateStructuredData();
             // Drop into JS pipeline
-            $assets->addInlineJs($sd, null, null, 'application/ld+json');
+            $type = array('type' => 'application/ld+json');
+            if (version_compare(GRAV_VERSION, '1.6.0', '<')) {
+                $type = 'application/ld+json';
+            }
+            $assets->addInlineJs($sd, null, null, $type);
         }
 
     }
