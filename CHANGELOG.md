@@ -1,3 +1,9 @@
+# v1.0.2
+## 09-02-2020
+
+1. [](#bugfix)
+    * Now appends to existing metadata rather than replacing
+
 # v1.0.1
 ## 06-09-2019
 

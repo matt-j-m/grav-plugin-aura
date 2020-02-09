@@ -114,6 +114,7 @@ class AuraPlugin extends Plugin
         }
         $this->webpage->datePublished = date("c", $page->date());
         $this->webpage->dateModified = date("c", $page->modified());
+        $this->webpage->metadata = $page->metadata();
         
         // Webpage Image
         $filename = false;
