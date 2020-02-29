@@ -1,3 +1,9 @@
+# v1.0.3
+## 29-02-2020
+
+1. [](#bugfix)
+    * Adjusted scope of autoloader so it will not interfere with other 'Aura' prefixed plugins
+
 # v1.0.2
 ## 09-02-2020
 

@@ -168,7 +168,7 @@ class AuraPlugin extends Plugin
 
         // Autoloader
         spl_autoload_register(function ($class) {
-            if (Utils::startsWith($class, 'Grav\Plugin\Aura')) {
+            if (Utils::startsWith($class, 'Grav\Plugin\Aura\\')) {
                 require_once __DIR__ .'/classes/' . strtolower(basename(str_replace("\\", '/', $class))) . '.php';
             }
         });
