@@ -23,6 +23,114 @@ class AuraPlugin extends Plugin
     private $webpage;
 
     /**
+     * Gives the core a list of events the plugin wants to listen to
+     *
+     * @return array
+     */
+    public static function getSubscribedEvents()
+    {
+        return [
+            'onPluginsInitialized' => ['onPluginsInitialized', 0]
+        ];
+    }
+
+    /**
+     * Initialize the plugin
+     */
+    public function onPluginsInitialized()
+    {
+
+        // Don't proceed if php ext-json is not available
+        if (!function_exists('json_encode')) {
+            return;
+        }
+
+        spl_autoload_register(function ($class) {
+            if (Utils::startsWith($class, 'Grav\Plugin\Aura\\')) {
+                require_once __DIR__ .'/classes/' . strtolower(basename(str_replace("\\", '/', $class))) . '.php';
+            }
+        });
+
+        // Admin only events
+        if ($this->isAdmin()) {
+            $this->enable([
+                'onBlueprintCreated' => ['onBlueprintCreated', 0],
+                //'onGetPageBlueprints' => ['onGetPageBlueprints', 0],
+                'onAdminSave' => ['onAdminSave', 0],
+            ]);
+            return;
+        }
+
+        // Frontend events
+        $this->enable([
+            'onPageInitialized' => ['onPageInitialized', 0]
+        ]);
+    }
+
+    public function onGetPageBlueprints($event)
+    {
+      $types = $event->types;
+      $types->scanBlueprints('plugins://' . $this->name . '/blueprints');
+    }
+
+    public function onAdminSave(Event $event)
+    {
+        // Don't proceed if Admin is not saving a Page
+        /*if (!$event['object'] instanceof Page) {
+            return;
+        }*/
+
+        // Don't proceed if required params not set
+        $requiredParams = array(
+            'org-name',
+            'org-url',
+        );
+        foreach ($requiredParams as $param) {
+            $key = 'plugins.aura.' . $param;
+            if (!$this->grav['config']->get($key)) {
+                return;
+            }
+        }
+
+        $page = $event['object'];
+        $this->init($page);
+
+        // Meta Description
+        if ($this->webpage->description) {
+            // Append description to page metadata
+            $this->webpage->metadata['description'] = array(
+                'name' => 'description',
+                'content' => htmlentities($this->webpage->description),
+            );
+        }
+
+        // Open Graph
+        if ($this->grav['config']->get('plugins.aura.output-og')) {
+            $this->generateOpenGraphMeta();
+        }
+
+        // Twitter
+        if ($this->grav['config']->get('plugins.aura.output-twitter')) {
+            $this->generateTwitterMeta();
+        }
+
+        // LinkedIn
+        if ($this->grav['config']->get('plugins.aura.output-linkedin')) {
+            $this->generateLinkedInMeta();
+        }
+
+        // Save metadata
+        foreach ($this->webpage->metadata as $tag) {
+            if (array_key_exists('property', $tag)) {
+                $page->header()->metadata[$tag['property']] = $tag['content'];
+            } else if (array_key_exists('name', $tag)) {
+                $page->header()->metadata[$tag['name']] = $tag['content'];
+            }
+        }
+
+    }
+
+    /**
      * Initializes Aura variables for the page
      *
      * @param  object $page
@@ -114,8 +222,9 @@ class AuraPlugin extends Plugin
         }
         $this->webpage->datePublished = date("c", $page->date());
         $this->webpage->dateModified = date("c", $page->modified());
-        $this->webpage->metadata = $page->metadata();
-        
+        //$this->webpage->metadata = $page->metadata();
+        $this->webpage->metadata = array();
+
         // Webpage Image
         $filename = false;
         if ((isset($header->aura['image'])) && ($header->aura['image'] != '')) {
@@ -149,101 +258,32 @@ class AuraPlugin extends Plugin
     }
 
     /**
-     * @return array
-     */
-    public static function getSubscribedEvents()
-    {
-        return [
-            'onPluginsInitialized' => ['onPluginsInitialized', 0],
-            'onBlueprintCreated' => ['onBlueprintCreated', 0],
-            'onPageInitialized' => ['onPageInitialized', 0]
-        ];
-    }
-
-    /**
-     * Initialize the plugin
-     */
-    public function onPluginsInitialized()
-    {
-
-        // Autoloader
-        spl_autoload_register(function ($class) {
-            if (Utils::startsWith($class, 'Grav\Plugin\Aura\\')) {
-                require_once __DIR__ .'/classes/' . strtolower(basename(str_replace("\\", '/', $class))) . '.php';
-            }
-        });
-
-        // Don't proceed if we are in the admin plugin
-        if ($this->isAdmin()) {
-            return;
-        }
-
-        // Don't proceed if php ext-json is not available
-        if (!function_exists('json_encode')) {
-            return;
-        }
-
-    }
-
-    /**
      * Insert meta tags and structured data to head of each page
      *
      * @param Event $e
      */
     public function onPageInitialized()
     {
-        // Don't proceed if we are in the admin plugin
-        if ($this->isAdmin()) {
-            return;
-        }
-
-        // Don't proceed if required params not set
-        $requiredParams = array(
-            'org-name',
-            'org-url',
-        );
-        foreach ($requiredParams as $param) {
-            $key = 'plugins.aura.' . $param;
-            if (!$this->grav['config']->get($key)) {
-                return;
-            }
-        }
-
-        $page = $this->grav['page'];
-        $assets = $this->grav['assets'];
-
-        $this->init($page);
-
-        // Meta Description
-        if ($this->webpage->description) {
-            // Append description to page metadata
-            $this->webpage->metadata['description'] = array(
-                'name' => 'description',
-                'content' => htmlentities($this->webpage->description),
-            );
-        }
-
-        // Open Graph
-        if ($this->grav['config']->get('plugins.aura.output-og')) {
-            $this->generateOpenGraphMeta();
-        }
-
-        // Twitter
-        if ($this->grav['config']->get('plugins.aura.output-twitter')) {
-            $this->generateTwitterMeta();
-        }
-
-        // LinkedIn
-        if ($this->grav['config']->get('plugins.aura.output-linkedin')) {
-            $this->generateLinkedInMeta();
-        }
-
-        // Output updated metadata
-        $page->metadata($this->webpage->metadata);
-
-
         // Structured Data
         if ($this->grav['config']->get('plugins.aura.output-sd')) {
+
+            // Don't proceed if required params not set
+            $requiredParams = array(
+                'org-name',
+                'org-url',
+            );
+            foreach ($requiredParams as $param) {
+                $key = 'plugins.aura.' . $param;
+                if (!$this->grav['config']->get($key)) {
+                    return;
+                }
+            }
+
+            $page = $this->grav['page'];
+            $assets = $this->grav['assets'];
+
+            $this->init($page);
+
             // Generate structured data block
             $sd = $this->generateStructuredData();
             // Drop into JS pipeline
@@ -265,7 +305,6 @@ class AuraPlugin extends Plugin
     {
         static $inEvent = false;
 
-        /** @var Data\Blueprint $blueprint */
         $blueprint = $event['blueprint'];
         if (!$inEvent && $blueprint->get('form/fields/tabs', null, '/')) {
             $inEvent = true;
