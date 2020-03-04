@@ -1,14 +1,11 @@
 <?php
 namespace Grav\Plugin;
 
-use Grav\Common\Data;
 use Grav\Common\Plugin;
+use Grav\Common\Page\Page;
 use RocketTheme\Toolbox\Event\Event;
-use Grav\Plugin\Aura\Organization;
-use Grav\Plugin\Aura\WebSite;
-use Grav\Plugin\Aura\WebPage;
-use Grav\Plugin\Aura\Image;
 use Grav\Common\Utils;
+use Grav\Plugin\Aura\Aura;
 
 
 /**
@@ -17,10 +14,6 @@ use Grav\Common\Utils;
  */
 class AuraPlugin extends Plugin
 {
-
-    private $org;
-    private $website;
-    private $webpage;
 
     /**
      * Gives the core a list of events the plugin wants to listen to
@@ -54,8 +47,7 @@ class AuraPlugin extends Plugin
         // Admin only events
         if ($this->isAdmin()) {
             $this->enable([
-                'onBlueprintCreated' => ['onBlueprintCreated', 0],
-                //'onGetPageBlueprints' => ['onGetPageBlueprints', 0],
+                'onGetPageBlueprints' => ['onGetPageBlueprints', 0],
                 'onAdminSave' => ['onAdminSave', 0],
             ]);
             return;
@@ -67,6 +59,11 @@ class AuraPlugin extends Plugin
         ]);
     }
 
+    /**
+     * Extend page blueprints with additional configuration options.
+     *
+     * @param Event $event
+     */
     public function onGetPageBlueprints($event)
     {
       $types = $event->types;
@@ -76,9 +73,9 @@ class AuraPlugin extends Plugin
     public function onAdminSave(Event $event)
     {
         // Don't proceed if Admin is not saving a Page
-        /*if (!$event['object'] instanceof Page) {
+        if (!$event['object'] instanceof Page) {
             return;
-        }*/
+        }
 
         // Don't proceed if required params not set
         $requiredParams = array(
@@ -93,168 +90,44 @@ class AuraPlugin extends Plugin
         }
 
         $page = $event['object'];
-        $this->init($page);
+        $aura = new Aura($page);
 
         // Meta Description
-        if ($this->webpage->description) {
+        if ($aura->webpage->description) {
             // Append description to page metadata
-            $this->webpage->metadata['description'] = array(
+            $aura->webpage->metadata['description'] = array(
                 'name' => 'description',
-                'content' => htmlentities($this->webpage->description),
+                'content' => htmlentities($aura->webpage->description),
             );
         }
 
         // Open Graph
         if ($this->grav['config']->get('plugins.aura.output-og')) {
-            $this->generateOpenGraphMeta();
+            $aura->generateOpenGraphMeta();
         }
 
         // Twitter
         if ($this->grav['config']->get('plugins.aura.output-twitter')) {
-            $this->generateTwitterMeta();
+            $aura->generateTwitterMeta();
         }
 
         // LinkedIn
         if ($this->grav['config']->get('plugins.aura.output-linkedin')) {
-            $this->generateLinkedInMeta();
+            $aura->generateLinkedInMeta();
         }
 
         // Save metadata
-        foreach ($this->webpage->metadata as $tag) {
+        $metadata = [];
+        foreach ($aura->webpage->metadata as $tag) {
             if (array_key_exists('property', $tag)) {
-                $page->header()->metadata[$tag['property']] = $tag['content'];
+                $metadata[$tag['property']] = $tag['content'];
             } else if (array_key_exists('name', $tag)) {
-                $page->header()->metadata[$tag['name']] = $tag['content'];
+                $metadata[$tag['name']] = $tag['content'];
             }
         }
 
-    }
+        $page->header()->metadata = array_merge($metadata, isset($page->header()->aura['metadata']) ? $page->header()->aura['metadata'] : []);
 
-    /**
-     * Initializes Aura variables for the page
-     *
-     * @param  object $page
-     *
-     * @return $this
-     */
-    private function init($page)
-    {
-
-        /*
-         * Organization
-         */
-        $this->org = new Organization();
-
-        $this->org->url = (string)$this->grav['config']->get('plugins.aura.org-url');
-        $this->org->id = $this->org->url . '#organization';
-        $this->org->name = $this->grav['config']->get('plugins.aura.org-name');
-
-        // Org SameAs
-        $sameAs = array();
-        $otherPresence = array(
-            'org-facebook-url',
-            'org-instagram-url',
-            'org-linkedin-url',
-            'org-pinterest-url',
-            'org-youtube-url',
-            'org-wikipedia-url',
-        );
-        foreach ($otherPresence as $platform) {
-            $key = 'plugins.aura.' . $platform;
-            if ($this->grav['config']->get($key)) {
-                $sameAs[] = $this->grav['config']->get($key);
-            }
-        }
-        $key = 'plugins.aura.' . 'org-twitter-user';
-        if ($this->grav['config']->get($key)) {
-            $sameAs[] = 'https://twitter.com/' . $this->grav['config']->get($key);
-        }
-        if (!empty($sameAs)) {
-            $this->org->sameAs = $sameAs;
-        }
-
-        // Org Logo
-        if ($this->grav['config']->get('plugins.aura.org-logo')) {
-            $imageArray = $this->grav['config']->get('plugins.aura.org-logo');
-            $firstImage = reset($imageArray);
-            $imagePath = ROOT_DIR . $firstImage['path'];
-            if (file_exists($imagePath)) {
-                $size = getimagesize($imagePath);
-                $this->org->logo = new Image();
-                $this->org->logo->url = $this->grav['base_url_absolute'] . '/' . $firstImage['path'];
-                $this->org->logo->id = $this->org->url . '#logo';
-                $this->org->logo->width = $size[0];
-                $this->org->logo->height = $size[1];
-                $this->org->logo->caption = $this->org->name;
-                $this->org->logo->type = $size['mime'];
-            }
-        }
-        
-        /*
-         * Website
-         */
-        $this->website = new WebSite;
-
-        $this->website->url = $this->grav['base_url_absolute'];
-        $this->website->id = $this->website->url . '#website';
-        $this->website->name = $this->grav['config']->get('site.title');
-        
-        
-        /*
-         * Webpage
-         */
-        $this->webpage = new WebPage;
-
-        $this->webpage->url = $page->url(true);
-        $this->webpage->id = $this->webpage->url . '#webpage';
-        $this->webpage->title = $page->title() . ' | ' . $this->grav['config']->get('site.title');
-        $header = $page->header();
-        if ((isset($header->aura['description'])) && ($header->aura['description'] != '')) {
-            $this->webpage->description = (string)$header->aura['description'];
-        }
-        if ((isset($header->language)) and ($header->language != '')) {
-            $this->webpage->language = $header->language;
-        } else {
-            $this->webpage->language = $this->grav['language']->getActive();
-            if (!$this->webpage->language) {
-                $this->webpage->language = $this->grav['config']->get('site.default_lang');
-            }
-        }
-        $this->webpage->datePublished = date("c", $page->date());
-        $this->webpage->dateModified = date("c", $page->modified());
-        //$this->webpage->metadata = $page->metadata();
-        $this->webpage->metadata = array();
-
-        // Webpage Image
-        $filename = false;
-        if ((isset($header->aura['image'])) && ($header->aura['image'] != '')) {
-            $filename = $header->aura['image'];
-        } else if (isset($header->media_order) && ($header->media_order != '')) {
-            $images = explode(',', $header->media_order);
-            if ((is_array($images)) && (!empty($images))) {
-                $filename = $images[0];
-            }
-        }
-
-        if ($filename) {
-            $imagePath = $page->path() . '/' . $filename;
-            if (file_exists($imagePath)) {
-                $size = getimagesize($imagePath);
-                $this->webpage->image = new Image();
-                $this->webpage->image->url = $page->url(true) . '/' . $filename;
-                $this->webpage->image->id = $this->webpage->url . '#primaryimage';
-                $this->webpage->image->width = $size[0];
-                $this->webpage->image->height = $size[1];
-                $this->webpage->image->caption = $this->webpage->title;
-                $this->webpage->image->type = $size['mime'];
-            }
-        }
-
-        if ((isset($header->aura['pagetype'])) && ($header->aura['pagetype'] != '')) {
-            $this->webpage->type = $header->aura['pagetype'];
-        }
-
-        return $this;
     }
 
     /**
@@ -282,10 +155,10 @@ class AuraPlugin extends Plugin
             $page = $this->grav['page'];
             $assets = $this->grav['assets'];
 
-            $this->init($page);
+            $aura = new Aura($page);
 
             // Generate structured data block
-            $sd = $this->generateStructuredData();
+            $sd = $aura->generateStructuredData();
             // Drop into JS pipeline
             $type = array('type' => 'application/ld+json');
             if (version_compare(GRAV_VERSION, '1.6.0', '<')) {
@@ -293,209 +166,6 @@ class AuraPlugin extends Plugin
             }
             $assets->addInlineJs($sd, null, null, $type);
         }
-
-    }
-
-    /**
-     * Extend page blueprints with additional configuration options.
-     *
-     * @param Event $event
-     */
-    public function onBlueprintCreated(Event $event)
-    {
-        static $inEvent = false;
-
-        $blueprint = $event['blueprint'];
-        if (!$inEvent && $blueprint->get('form/fields/tabs', null, '/')) {
-            $inEvent = true;
-            $blueprints = new Data\Blueprints(__DIR__ . '/blueprints/');
-            $extends = $blueprints->get('aura');
-            $blueprint->extend($extends, true);
-            $inEvent = false;
-        }
-    }
-
-    private function generateOpenGraphMeta() {
-        $data = array(
-            'og:url' => $this->webpage->url,
-            'og:type' => $this->webpage->type,
-            'og:title' => $this->webpage->title,
-            'og:author' => $this->org->name,
-        );
-        if ($this->webpage->description) {
-            $data['og:description'] = $this->webpage->description;
-        }
-        if ($this->webpage->image) {
-            $data['og:image'] = $this->webpage->image->url;
-            $data['og:image:type'] = $this->webpage->image->type;
-            $data['og:image:width'] = $this->webpage->image->width;
-            $data['og:image:height'] = $this->webpage->image->height;
-        }
-        if ($this->grav['config']->get('plugins.aura.org-facebook-appid')) {
-            $data['fb:app_id'] = $this->grav['config']->get('plugins.aura.org-facebook-appid');
-        }
-        foreach ($data as $property => $content) {
-            $this->webpage->metadata[$property] = array(
-                'property' => $property,
-                'content' => htmlentities($content),
-            );
-        }
-    }
-
-    private function generateTwitterMeta() {
-        $data = array(
-            'twitter:card' => 'summary_large_image',
-            'twitter:title' => $this->webpage->title,
-        );
-        if ($this->webpage->description) {
-            $data['twitter:description'] = $this->webpage->description;
-        }
-        if ($this->grav['config']->get('plugins.aura.org-twitter-user')) {
-            $data['twitter:site'] = '@' . $this->grav['config']->get('plugins.aura.org-twitter-user');
-            $data['twitter:creator'] = '@' . $this->grav['config']->get('plugins.aura.org-twitter-user');
-        }
-        if ($this->webpage->image) {
-            $data['twitter:image'] = $this->webpage->image->url;
-        }
-        foreach ($data as $name => $content) {
-            $this->webpage->metadata[$name] = array(
-                'name' => $name,
-                'content' => htmlentities($content),
-            );
-        }
-    }
-
-    private function generateLinkedInMeta() {
-        $data = array(
-            'article:published_time' => $this->webpage->datePublished,
-            'article:modified_time' => $this->webpage->dateModified,
-            'article:author' => $this->org->name,
-        );
-        foreach ($data as $property => $content) {
-            $this->webpage->metadata[$property] = array(
-                'property' => $property,
-                'content' => htmlentities($content),
-            );
-        }
-    }
-
-    private function generateStructuredData() {
-        $organization = array(
-            '@type' => 'Organization',
-            '@id' => $this->org->id,
-            'name' => $this->org->name,
-            'url' => $this->org->url,
-        );
-
-        $website = array(
-            '@type' => 'WebSite',
-            '@id' => $this->website->id,
-            'url' => $this->website->url,
-            'name' => $this->website->name,
-            'publisher' => array(
-                '@id' => $this->org->id,
-            ),
-        );
-
-        $webpage = array(
-            '@type' => 'WebPage',
-            '@id' => $this->webpage->id,
-            'url' => $this->webpage->url,
-            'inLanguage' => $this->webpage->language,
-            'name' => $this->webpage->title,
-            'isPartOf' => array(
-                '@id' => $this->website->id,
-            ),
-            'datePublished' => $this->webpage->datePublished,
-            'dateModified' => $this->webpage->dateModified,
-        );
-
-        // Add Organization sameAs (if defined)
-        if ($this->org->sameAs) {
-            $organization['sameAs'] = $this->org->sameAs;
-        }
-
-        // Add logo (if defined)
-        if ($this->org->logo) {
-            $organization['logo'] = array(
-                '@type' => 'ImageObject',
-                '@id' => $this->org->logo->id,
-                'url' => $this->org->logo->url,
-                'width' => $this->org->logo->width,
-                'height' => $this->org->logo->height,
-                'caption' => $this->org->logo->caption,
-            );
-            $organization['image'] = array(
-                '@id' => $this->org->logo->id,
-            );
-        }
-
-        // Add page description (if defined)
-        if ($this->webpage->description) {
-            $webpage['description'] = $this->webpage->description;
-        }
-
-        // Add page image (if defined)
-        if ($this->webpage->image) {
-            $webpageImage = array(
-                '@type' => 'ImageObject',
-                '@id' => $this->webpage->image->id,
-                'url' => $this->webpage->image->url,
-                'width' => $this->webpage->image->width,
-                'height' => $this->webpage->image->height,
-                'caption' => $this->webpage->image->caption,
-            );
-            $webpage['primaryImageOfPage'] = array(
-                '@id' => $this->webpage->image->id,
-            );
-        }
-
-        // Additional based on page type i.e. article
-        if ($this->webpage->type == 'article') {
-            $article = array(
-                '@type' => 'Article',
-                '@id' => $this->webpage->url . '#article',
-                'isPartOf' => array(
-                    '@id' => $this->webpage->id,
-                ),
-                'author' => array(
-                    '@id' => $this->org->id,
-                ),
-                'headline' => $this->webpage->title,
-                'datePublished' => $this->webpage->datePublished,
-                'dateModified' => $this->webpage->dateModified,
-                'mainEntityOfPage' => array(
-                    '@id' => $this->webpage->id,
-                ),
-                'publisher' => array(
-                    '@id' => $this->org->id,
-                ),
-            );
-            if ($this->webpage->image) {
-                $article['image'] = array(
-                    '@id' => $this->webpage->image->id,
-                );
-            }
-        }
-
-        // Build the empty structured data block
-        $data = array(
-            '@context' => 'https://schema.org',
-            '@graph' => array(),
-        );
-
-        // Add the elements in order
-        $data['@graph'][] = $organization;
-        $data['@graph'][] = $website;
-        if (isset($webpageImage)) {
-            $data['@graph'][] = $webpageImage;
-        }
-        $data['@graph'][] = $webpage;
-        if (isset($article)) {
-            $data['@graph'][] = $article;
-        }
-
-        return json_encode($data, JSON_UNESCAPED_SLASHES);
 
     }
 
