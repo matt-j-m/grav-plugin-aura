@@ -133,7 +133,7 @@ class AuraPlugin extends Plugin
                 $size = getimagesize($imagePath);
                 $this->webpage->image = new Image();
                 $this->webpage->image->url = $page->url(true) . '/' . $filename;
-                $this->webpage->image->id = $this->webpage->url . '#primaryimage';
+                $this->webpage->image->url = $this->grav['uri']->rootUrl(true)."/".$page->language().$page->route()."/".$filename;
                 $this->webpage->image->width = $size[0];
                 $this->webpage->image->height = $size[1];
                 $this->webpage->image->caption = $this->webpage->title;
