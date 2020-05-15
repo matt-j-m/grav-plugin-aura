@@ -3,13 +3,25 @@ namespace Grav\Plugin\Aura;
 
 use Grav\Common\Grav;
 use Grav\Common\Page\Page;
+use Grav\Plugin\AuraAuthorsPlugin;
 
 class Aura
 {
     private $org;
     private $website;
-    public $webpage;
+    public  $webpage;
+    private $person;
     private $grav;
+
+    private $otherPresence = array(
+        'facebook-url',
+        'instagram-url',
+        'linkedin-url',
+        'pinterest-url',
+        'youtube-url',
+        'wikipedia-url',
+        'website-url',
+    );
 
     /**
      * Initializes Aura variables for the page
@@ -33,16 +45,8 @@ class Aura
 
         // Org SameAs
         $sameAs = array();
-        $otherPresence = array(
-            'org-facebook-url',
-            'org-instagram-url',
-            'org-linkedin-url',
-            'org-pinterest-url',
-            'org-youtube-url',
-            'org-wikipedia-url',
-        );
-        foreach ($otherPresence as $platform) {
-            $key = 'plugins.aura.' . $platform;
+        foreach ($this->otherPresence as $platform) {
+            $key = 'plugins.aura.org-' . $platform;
             if ($this->grav['config']->get($key)) {
                 $sameAs[] = $this->grav['config']->get($key);
             }
@@ -135,6 +139,42 @@ class Aura
             $this->webpage->type = $header->aura['pagetype'];
         }
 
+        // Author
+        if (($this->grav['config']->get('plugins.aura-authors.enabled')) && isset($page->header()->aura['author'])) {
+            $authors = AuraAuthorsPlugin::getAuthors();
+            $key = array_search($page->header()->aura['author'], array_column($authors, 'label'));
+            if ($key !== false) {
+
+                $author = $authors[$key];
+
+                $this->person = new Person();
+
+                $this->person->id = $this->org->url . '#person/' . $author['label'];
+                $this->person->name = $author['name'];
+                $this->person->description = $author['description'];
+
+                // Person SameAs
+                $sameAs = array();
+                foreach ($this->otherPresence as $platform) {
+                    $key = 'person-' . $platform;
+                    if (isset($author[$key]) && $author[$key] != '') {
+                        $sameAs[] = $author[$key];
+                    }
+                }
+                $key = 'person-twitter-user';
+                if (isset($author[$key]) && $author[$key] != '') {
+                    $this->person->twitterUser = $author[$key];
+                    $sameAs[] = 'https://twitter.com/' . $author[$key];
+                }
+                if (!empty($sameAs)) {
+                    $this->person->sameAs = $sameAs;
+                }
+
+                // TODO: Person Image
+
+            }
+        }
+
     }
 
     public function generateOpenGraphMeta() {
@@ -142,7 +182,6 @@ class Aura
             'og:url' => $this->webpage->url,
             'og:type' => $this->webpage->type,
             'og:title' => $this->webpage->title,
-            'og:author' => $this->org->name,
         );
         if ($this->webpage->description) {
             $data['og:description'] = $this->webpage->description;
@@ -155,6 +194,11 @@ class Aura
         }
         if ($this->grav['config']->get('plugins.aura.org-facebook-appid')) {
             $data['fb:app_id'] = $this->grav['config']->get('plugins.aura.org-facebook-appid');
+        }
+        if ($this->person) {
+            $data['og:author'] = $this->person->name;
+        } else {
+            $data['og:author'] = $this->org->name;
         }
         foreach ($data as $property => $content) {
             $this->webpage->metadata[$property] = array(
@@ -174,7 +218,13 @@ class Aura
         }
         if ($this->grav['config']->get('plugins.aura.org-twitter-user')) {
             $data['twitter:site'] = '@' . $this->grav['config']->get('plugins.aura.org-twitter-user');
-            $data['twitter:creator'] = '@' . $this->grav['config']->get('plugins.aura.org-twitter-user');
+        }
+        if ($this->person && $this->person->twitterUser) {
+            $data['twitter:creator'] = '@' . $this->person->twitterUser;
+        } else {
+            if ($this->grav['config']->get('plugins.aura.org-twitter-user')) {
+                $data['twitter:creator'] = '@' . $this->grav['config']->get('plugins.aura.org-twitter-user');
+            }
         }
         if ($this->webpage->image) {
             $data['twitter:image'] = $this->webpage->image->url;
@@ -191,8 +241,12 @@ class Aura
         $data = array(
             'article:published_time' => $this->webpage->datePublished,
             'article:modified_time' => $this->webpage->dateModified,
-            'article:author' => $this->org->name,
         );
+        if ($this->person) {
+            $data['article:author'] = $this->person->name;
+        } else {
+            $data['article:author'] = $this->org->name;
+        }
         foreach ($data as $property => $content) {
             $this->webpage->metadata[$property] = array(
                 'property' => $property,
@@ -280,9 +334,6 @@ class Aura
                 'isPartOf' => array(
                     '@id' => $this->webpage->id,
                 ),
-                'author' => array(
-                    '@id' => $this->org->id,
-                ),
                 'headline' => $this->webpage->title,
                 'datePublished' => $this->webpage->datePublished,
                 'dateModified' => $this->webpage->dateModified,
@@ -293,9 +344,51 @@ class Aura
                     '@id' => $this->org->id,
                 ),
             );
+
+            // Add Image
             if ($this->webpage->image) {
                 $article['image'] = array(
                     '@id' => $this->webpage->image->id,
+                );
+            }
+
+            // Add Author
+            if ($this->person) {
+                // Use Person (if defined)
+                $person = array(
+                    '@type' => 'Person',
+                    '@id' => $this->person->id,
+                    'name' => $this->person->name,
+                );
+
+                // Add Person description (if defined)
+                if ($this->person->description) {
+                    $person['description'] = $this->person->description;
+                }
+
+                // Add Person sameAs (if defined)
+                if ($this->person->sameAs) {
+                    $person['sameAs'] = $this->person->sameAs;
+                }
+
+                // Add Person image (if defined)
+                if ($this->person->image) {
+                    $person['image'] = array(
+                        '@type' => 'ImageObject',
+                        '@id' => $this->person->image->id,
+                        'url' => $this->person->image->url,
+                        'width' => $this->person->image->width,
+                        'height' => $this->person->image->height,
+                        'caption' => $this->person->image->caption,
+                    );
+                }
+                $article['author'] = array(
+                    '@id' => $this->person->id,
+                );
+            } else {
+                // Use Organization
+                $article['author'] = array(
+                    '@id' => $this->org->id,
                 );
             }
         }
@@ -315,6 +408,9 @@ class Aura
         $data['@graph'][] = $webpage;
         if (isset($article)) {
             $data['@graph'][] = $article;
+        }
+        if (isset($person)) {
+            $data['@graph'][] = $person;
         }
 
         return json_encode($data, JSON_UNESCAPED_SLASHES);

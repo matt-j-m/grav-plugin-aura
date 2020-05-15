@@ -19,6 +19,8 @@ The **Aura** Plugin for [Grav CMS](https://github.com/getgrav/grav) adds meta ta
 
 It is recommended to install Aura directly through the Admin Plugin by browsing to the `Plugins` tab and selecting `Add`.
 
+**Important:** If upgrading from a version < 2.0.0 existing Aura metadata output will be disabled due to a change in the way the metadata is stored. You will not be required to re-enter any information, but you will need to actively re-save each page via the page editor to re-enable metadata output. The new method of saving metadata capitalises on Grav's inbuilt page caching for optimal site performance.
+
 ## Configuration
 
 You can configure Aura via the Admin Plugin by browsing to `Plugins` and selecting `Aura`.
@@ -30,6 +32,10 @@ There are only two required fields to complete to get up and running: Organizati
 Global settings are configured at the plugin level as described above. These values are constant for each page of your site e.g. Oranization name, logo and social account details.
 
 There is an additional configuration tab titled `Aura` available on each page in the page editor. This is where to set page specific information such as the meta description. Other than meta description, data required at a page level (URL, title etc.) will be automatically inferred from Grav's internal system settings.
+
+Additional metadata can also be entered on this tab. For example to signal to web crawlers not to index the page, enter key: `robots` and value: `noindex,nofollow`.
+
+Individual Aura generated meta tags can be overridden with the Additional Metadata input as well. For example to display a specific title when sharing on Twitter only, enter a custom value for the key `twitter:title`.
 
 ## Credits
 
