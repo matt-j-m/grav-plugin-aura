@@ -1,5 +1,5 @@
 # v2.0.0
-## 14-05-2020
+## 22-06-2020
 
 1. [](#improved)
     * Changed the way metadata is stored in frontmatter to capitalise on Grav page caching. **Important:** When upgrading from a previous version existing Aura metadata output will be disabled. You will not be required to re-enter any information, but you will need to actively re-save each page via the page editor to re-enable metadata output.

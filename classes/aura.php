@@ -141,7 +141,7 @@ class Aura
 
         // Author
         if (($this->grav['config']->get('plugins.aura-authors.enabled')) && isset($page->header()->aura['author'])) {
-            $authors = AuraAuthorsPlugin::getAuthors();
+            $authors = $this->grav['config']->get('plugins.aura-authors.authors');
             $key = array_search($page->header()->aura['author'], array_column($authors, 'label'));
             if ($key !== false) {
 
@@ -170,7 +170,21 @@ class Aura
                     $this->person->sameAs = $sameAs;
                 }
 
-                // TODO: Person Image
+                // Person Image
+                if ((isset($author['image'])) && (!empty($author['image']))) {
+                    $firstImage = reset($author['image']);
+                    $imagePath = ROOT_DIR . $firstImage['path'];
+                    if (file_exists($imagePath)) {
+                        $size = getimagesize($imagePath);
+                        $this->person->image = new Image();
+                        $this->person->image->url = $this->grav['base_url_absolute'] . '/' . $firstImage['path'];
+                        $this->person->image->id = $this->org->url . '#personimage/' . $author['label'];
+                        $this->person->image->width = $size[0];
+                        $this->person->image->height = $size[1];
+                        $this->person->image->caption = $author['name'];
+                        $this->person->image->type = $size['mime'];
+                    }
+                }
 
             }
         }
