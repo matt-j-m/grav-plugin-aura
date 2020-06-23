@@ -126,7 +126,7 @@ class Aura
             if (file_exists($imagePath)) {
                 $size = getimagesize($imagePath);
                 $this->webpage->image = new Image();
-                $this->webpage->image->url = $page->url(true) . '/' . $filename;
+                $this->webpage->image->url = preg_replace('/' . preg_quote($page->urlExtension()) . '$/u', '', $page->url(true)) . '/' . $filename;
                 $this->webpage->image->id = $this->webpage->url . '#primaryimage';
                 $this->webpage->image->width = $size[0];
                 $this->webpage->image->height = $size[1];
