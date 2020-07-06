@@ -1,3 +1,12 @@
+# v2.0.1
+## 07-07-2020
+
+1. [](#bugfix)
+    * Added check to include metadata saved prior to v2.0.0
+
+1. [](#bugfix)
+    * Updated date published/modified functionality to ensure output of valid timestamp
+
 # v2.0.0
 ## 23-06-2020
 

@@ -106,9 +106,18 @@ class Aura
                 $this->webpage->language = $this->grav['config']->get('site.default_lang');
             }
         }
-        $this->webpage->datePublished = date("c", $page->date());
-        $this->webpage->dateModified = date("c", $page->modified());
-        $this->webpage->metadata = array();
+
+        $datePublishedRaw = time();
+        if ($page->publishDate()) {
+            $datePublishedRaw = $page->publishDate();
+        } else if ($page->date()) {
+            $datePublishedRaw = $page->date();
+        } else if ($page->modified()) {
+            $datePublishedRaw = $page->modified();
+        }
+        $dateModifiedRaw = $page->modified() ? $page->modified() : time();
+        $this->webpage->datePublished = date("c", $datePublishedRaw);
+        $this->webpage->dateModified = date("c", $dateModifiedRaw);
 
         // Webpage Image
         $filename = false;
