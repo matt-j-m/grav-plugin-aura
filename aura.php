@@ -116,13 +116,33 @@ class AuraPlugin extends Plugin
             $aura->generateLinkedInMeta();
         }
 
-        // Save metadata
+        // Generate Aura metadata
         $metadata = [];
         foreach ($aura->webpage->metadata as $tag) {
             if (array_key_exists('property', $tag)) {
                 $metadata[$tag['property']] = $tag['content'];
             } else if (array_key_exists('name', $tag)) {
                 $metadata[$tag['name']] = $tag['content'];
+            }
+        }
+
+        // Check for existing metadata that may have been set prior to installation of Aura v2.0.0.
+        if (isset($page->header()->metadata) && is_array($page->header()->metadata)) {
+            foreach ($page->header()->metadata as $key => $val) {
+                $exists = false;
+                if (array_key_exists($key, $metadata)) {
+                    $exists = true;
+                } else {
+                    if (isset($page->header()->aura['metadata']) && is_array($page->header()->aura['metadata'])) {
+                        if (array_key_exists($key, $page->header()->aura['metadata'])) {
+                            $exists = true;
+                        }
+                    }
+                }
+                if (!$exists) {
+                    $metadata[$key] = $val;
+                    $page->header()->aura['metadata'] = array($key => $val);
+                }
             }
         }
 
