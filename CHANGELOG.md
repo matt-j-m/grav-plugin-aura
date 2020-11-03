@@ -1,3 +1,9 @@
+# v2.0.2
+## 03-11-2020
+
+1. [](#bugfix)
+    * Fixed bug where custom metadata could not be removed
+
 # v2.0.1
 ## 07-07-2020
 

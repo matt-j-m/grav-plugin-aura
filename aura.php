@@ -72,6 +72,9 @@ class AuraPlugin extends Plugin
 
     public function onAdminSave(Event $event)
     {
+
+        //file_put_contents('/tmp/myfile', print_r($event, true));
+
         // Don't proceed if Admin is not saving a Page
         if (!$event['object'] instanceof Page) {
             return;
@@ -126,20 +129,12 @@ class AuraPlugin extends Plugin
             }
         }
 
-        // Check for existing metadata that may have been set prior to installation of Aura v2.0.0.
-        if (isset($page->header()->metadata) && is_array($page->header()->metadata)) {
+        $original = $page->getOriginal();
+        if (!isset($original->header()->aura) && isset($page->header()->metadata) && is_array($page->header()->metadata)) {
+            // Page has not been saved since installation of Aura and includes some custom metadata
             foreach ($page->header()->metadata as $key => $val) {
-                $exists = false;
-                if (array_key_exists($key, $metadata)) {
-                    $exists = true;
-                } else {
-                    if (isset($page->header()->aura['metadata']) && is_array($page->header()->aura['metadata'])) {
-                        if (array_key_exists($key, $page->header()->aura['metadata'])) {
-                            $exists = true;
-                        }
-                    }
-                }
-                if (!$exists) {
+                if (!array_key_exists($key, $metadata)) {
+                    // A new value has not been supplied via Aura, salvage existing metadata
                     $metadata[$key] = $val;
                     $page->header()->aura['metadata'] = array($key => $val);
                 }
