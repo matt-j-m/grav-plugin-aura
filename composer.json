@@ -1,0 +1,37 @@
+{
+  "name": "matt-j-m/grav-plugin-aura",
+  "type": "grav-plugin",
+  "description": "Automatically add meta tags and structured data to your pages for visually appealing and informative search results and social media sharing.",
+  "keywords": ["seo", "structured data", "open graph"],
+  "homepage": "https://github.com/matt-j-m/grav-plugin-aura",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Matt Mulhall",
+      "email": "matt@theskylab.net",
+      "homepage": "https://www.theskylab.net",
+      "role": "Developer"
+    }
+  ],
+  "support": {
+    "issues": "https://github.com/matt-j-m/grav-plugin-aura/issues",
+    "docs": "https://github.com/matt-j-m/grav-plugin-aura/blob/master/README.md"
+  },
+  "require": {
+    "php": ">=7.1.3",
+    "ext-json": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "Grav\\Plugin\\Aura\\": "classes/"
+    },
+    "classmap":  [
+      "aura.php"
+    ]
+  },
+  "config": {
+    "platform": {
+      "php": "7.1.3"
+    }
+  }
+}

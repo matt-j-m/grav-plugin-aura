@@ -33,11 +33,6 @@ class AuraPlugin extends Plugin
     public function onPluginsInitialized()
     {
 
-        // Don't proceed if php ext-json is not available
-        if (!function_exists('json_encode')) {
-            return;
-        }
-
         spl_autoload_register(function ($class) {
             if (Utils::startsWith($class, 'Grav\Plugin\Aura\\')) {
                 require_once __DIR__ .'/classes/' . strtolower(basename(str_replace("\\", '/', $class))) . '.php';
