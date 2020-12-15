@@ -2,8 +2,6 @@
 namespace Grav\Plugin\Aura;
 
 use Grav\Common\Grav;
-use Grav\Common\Page\Page;
-use Grav\Plugin\AuraAuthorsPlugin;
 
 class Aura
 {
@@ -29,7 +27,7 @@ class Aura
      * @param  object $page
      *
      */
-    public function __construct(Page $page)
+    public function __construct($page)
     {
 
         $this->grav = $cache = Grav::instance();

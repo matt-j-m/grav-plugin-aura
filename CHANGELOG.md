@@ -1,3 +1,9 @@
+# v2.1.0
+## 15-12-2020
+
+1. [](#new)
+    * Added support for flex pages in Grav 1.7
+
 # v2.0.2
 ## 03-11-2020
 
