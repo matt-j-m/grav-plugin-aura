@@ -1,5 +1,7 @@
 name: Aura
-version: 2.0.2
+slug: aura
+type: plugin
+version: 2.1.0
 description: Automatically add meta tags and structured data to your pages for visually appealing and informative search results and social media sharing.
 icon: code
 author:
@@ -10,6 +12,9 @@ homepage: https://github.com/matt-j-m/grav-plugin-aura
 keywords: seo, structured data, open graph
 bugs: https://github.com/matt-j-m/grav-plugin-aura/issues
 license: MIT
+
+dependencies:
+  - { name: grav, version: '>=1.7.0' }
 
 form:
   validation: strict

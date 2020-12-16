@@ -2,7 +2,7 @@
 namespace Grav\Plugin;
 
 use Grav\Common\Plugin;
-use Grav\Common\Page\Page;
+use Grav\Common\Flex\Types\Pages\PageObject;
 use RocketTheme\Toolbox\Event\Event;
 use Grav\Common\Utils;
 use Grav\Plugin\Aura\Aura;
@@ -32,11 +32,6 @@ class AuraPlugin extends Plugin
      */
     public function onPluginsInitialized()
     {
-
-        // Don't proceed if php ext-json is not available
-        if (!function_exists('json_encode')) {
-            return;
-        }
 
         spl_autoload_register(function ($class) {
             if (Utils::startsWith($class, 'Grav\Plugin\Aura\\')) {
@@ -73,10 +68,7 @@ class AuraPlugin extends Plugin
     public function onAdminSave(Event $event)
     {
 
-        //file_put_contents('/tmp/myfile', print_r($event, true));
-
-        // Don't proceed if Admin is not saving a Page
-        if (!$event['object'] instanceof Page) {
+        if (!$event['object'] instanceof PageObject) {
             return;
         }
 

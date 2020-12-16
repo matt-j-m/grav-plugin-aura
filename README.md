@@ -29,7 +29,7 @@ There are only two required fields to complete to get up and running: Organizati
 
 ## Usage
 
-Global settings are configured at the plugin level as described above. These values are constant for each page of your site e.g. Oranization name, logo and social account details.
+Global settings are configured at the plugin level as described above. These values are constant for each page of your site e.g. Organization name, logo and social account details.
 
 There is an additional configuration tab titled `Aura` available on each page in the page editor. This is where to set page specific information such as the meta description. Other than meta description, data required at a page level (URL, title etc.) will be automatically inferred from Grav's internal system settings.
 
