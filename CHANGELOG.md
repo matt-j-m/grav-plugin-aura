@@ -1,3 +1,9 @@
+# v2.1.1
+## 02-02-2021
+
+1. [](#bugfix)
+* Fixed issue with initial save on new pages
+
 # v2.1.0
 ## 15-12-2020
 

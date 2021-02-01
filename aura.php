@@ -122,17 +122,18 @@ class AuraPlugin extends Plugin
         }
 
         $original = $page->getOriginal();
-        if (!isset($original->header()->aura) && isset($page->header()->metadata) && is_array($page->header()->metadata)) {
+        if ($original && !isset($original->header()->aura) && isset($page->header()->metadata) && is_array($page->header()->metadata)) {
             // Page has not been saved since installation of Aura and includes some custom metadata
+            $legacyMetadata = ['metadata' => []];
             foreach ($page->header()->metadata as $key => $val) {
                 if (!array_key_exists($key, $metadata)) {
                     // A new value has not been supplied via Aura, salvage existing metadata
                     $metadata[$key] = $val;
-                    $page->header()->aura['metadata'] = array($key => $val);
+                    $legacyMetadata['metadata'][$key] = $val;
                 }
             }
+            $page->header()->aura = array_merge($legacyMetadata, isset($page->header()->aura) ? $page->header()->aura : []);
         }
-
         $page->header()->metadata = array_merge($metadata, isset($page->header()->aura['metadata']) ? $page->header()->aura['metadata'] : []);
 
     }
