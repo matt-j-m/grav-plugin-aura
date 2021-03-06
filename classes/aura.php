@@ -428,6 +428,7 @@ class Aura
      */
     protected function setWebpageImage($page): void
     {
+        $image = null;
         $header = $page->header();
 
         if (isset($header->aura['image']) && $header->aura['image'] !== '') {
@@ -440,22 +441,22 @@ class Aura
             }
         }
 
-        if (!empty($image)) {
+        if ($image !== null) {
             $url_data = array_merge(
                 parse_url($this->grav->get('base_url_absolute')),
                 parse_url($image->url())
             );
 
             $url = call_user_func(
-                function (array $parts) {
+                static function (array $parts) {
                     return (isset($parts['scheme']) ? "{$parts['scheme']}:" : '') .
                         ((isset($parts['user']) || isset($parts['host'])) ? '//' : '') .
-                        (isset($parts['user']) ? "{$parts['user']}" : '') .
+                        (isset($parts['user']) ? (string)($parts['user']) : '') .
                         (isset($parts['pass']) ? ":{$parts['pass']}" : '') .
                         (isset($parts['user']) ? '@' : '') .
-                        (isset($parts['host']) ? "{$parts['host']}" : '') .
+                        (isset($parts['host']) ? (string)($parts['host']) : '') .
                         (isset($parts['port']) ? ":{$parts['port']}" : '') .
-                        (isset($parts['path']) ? "{$parts['path']}" : '') .
+                        (isset($parts['path']) ? (string)($parts['path']) : '') .
                         (isset($parts['query']) ? "?{$parts['query']}" : '') .
                         (isset($parts['fragment']) ? "#{$parts['fragment']}" : '');
                 }, $url_data
