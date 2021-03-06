@@ -170,7 +170,7 @@ class Aura
 
         // Add logo (if defined)
         if ($this->org->logo) {
-            $organization['logo']  = [
+            $organization['logo'] = [
                 '@type'   => 'ImageObject',
                 '@id'     => $this->org->logo->id,
                 'url'     => $this->org->logo->url,
@@ -191,7 +191,7 @@ class Aura
 
         // Add page image (if defined)
         if ($this->webpage->image) {
-            $webpageImage                  = [
+            $webpageImage = [
                 '@type'   => 'ImageObject',
                 '@id'     => $this->webpage->image->id,
                 'url'     => $this->webpage->image->url,
@@ -322,7 +322,7 @@ class Aura
             }
         }
 
-        $key = 'plugins.aura.' . 'org-twitter-user';
+        $key = 'plugins.aura.org-twitter-user';
 
         if ($this->grav['config']->get($key)) {
             $sameAs[] = 'https://twitter.com/' . $this->grav['config']->get($key);
@@ -441,10 +441,30 @@ class Aura
         }
 
         if (!empty($image)) {
+            $url_data = array_merge(
+                parse_url($this->grav->get('base_url_absolute')),
+                parse_url($image->url())
+            );
+
+            $url = call_user_func(
+                function (array $parts) {
+                    return (isset($parts['scheme']) ? "{$parts['scheme']}:" : '') .
+                        ((isset($parts['user']) || isset($parts['host'])) ? '//' : '') .
+                        (isset($parts['user']) ? "{$parts['user']}" : '') .
+                        (isset($parts['pass']) ? ":{$parts['pass']}" : '') .
+                        (isset($parts['user']) ? '@' : '') .
+                        (isset($parts['host']) ? "{$parts['host']}" : '') .
+                        (isset($parts['port']) ? ":{$parts['port']}" : '') .
+                        (isset($parts['path']) ? "{$parts['path']}" : '') .
+                        (isset($parts['query']) ? "?{$parts['query']}" : '') .
+                        (isset($parts['fragment']) ? "#{$parts['fragment']}" : '');
+                }, $url_data
+            );
+
             $this->webpage->image          = new Image();
             $this->webpage->image->id      = $this->webpage->url . '#primaryimage';
             $this->webpage->image->caption = $this->webpage->title;
-            $this->webpage->image->url     = sprintf('%s%s', $this->grav->get('base_url_absolute'), $image->url());
+            $this->webpage->image->url     = $url;
             $this->webpage->image->width   = $image->get('width');
             $this->webpage->image->height  = $image->get('height');
             $this->webpage->image->type    = $image->get('mime');
