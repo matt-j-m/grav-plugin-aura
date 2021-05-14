@@ -1,3 +1,10 @@
+# v2.1.2
+## 02-02-2021
+
+1. [](#bugfix)
+* Fix page image URL Issue #16
+* Fix double encoded HTML entities Issue #12
+
 # v2.1.1
 ## 02-02-2021
 
