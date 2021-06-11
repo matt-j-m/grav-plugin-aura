@@ -1,7 +1,30 @@
+title: Aura
+'@extends':
+    type: default
+    context: blueprints://pages
+
 form:
   fields:
     tabs:
+      type: tabs
+      active: 1
+
       fields:
+
+        options:
+          type: tab
+          title: PLUGIN_ADMIN.OPTIONS
+
+          fields:
+            publishing:
+              type: section
+              title: PLUGIN_ADMIN.PUBLISHING
+              underline: true
+
+              fields:
+                header.metadata:
+                  unset@: true
+
         aura:
           type: tab
           title: Aura
@@ -29,3 +52,10 @@ form:
               label: Preview Image
               preview_images: true
               description: 'Recommended size 1920x1080px in .jpg, .png or .gif format only. If not specified, will default to the first image found in the page''s folder.'
+
+            header.aura.metadata:
+              toggleable: true
+              type: array
+              label: Additional Metadata
+              placeholder_key: PLUGIN_ADMIN.METADATA_KEY
+              placeholder_value: PLUGIN_ADMIN.METADATA_VALUE
