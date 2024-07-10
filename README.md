@@ -1,3 +1,10 @@
+## Project Ownership
+
+🚀 **Looking for Maintainers**
+
+This project is currently seeking new maintainers to take over development and support. If you're interested or have questions, please open an issue to discuss further.
+
+
 # Aura Plugin
 
 The **Aura** Plugin for [Grav CMS](https://github.com/getgrav/grav) adds meta tags and structured data to your pages for visually appealing and informative search results and social media sharing.
